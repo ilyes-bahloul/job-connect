@@ -180,6 +180,6 @@ Pour contribuer au projet :
 
 ---
 
-Développé avec ❤️ par Ilyes Bahloul en Flutter
+Développé avec ❤️ par Yosra Fakhfakh et Firas Hajji en Flutter
 
 
