@@ -180,6 +180,6 @@ Pour contribuer au projet :
 
 ---
 
-Développé avec ❤️ en Flutter
+Développé avec ❤️ par Saif Issaoui en Flutter
 
 
