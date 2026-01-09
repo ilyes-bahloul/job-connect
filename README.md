@@ -96,12 +96,43 @@ lib/
 
 ## 🔌 Intégration Backend
 
-L'application utilise actuellement des données mockées dans `lib/services/job_service.dart`. Pour connecter à votre backend :
+L'application est maintenant intégrée avec le backend NestJS + MongoDB fourni.
 
-1. Modifiez `lib/services/job_service.dart` pour remplacer les fonctions mockées par de vrais appels API
-2. Configurez l'URL de base de votre API
-3. Ajoutez la gestion des tokens d'authentification si nécessaire
-4. Implémentez l'upload de fichiers (CV, photos) vers votre serveur
+### Lancer le backend
+
+1. **Cloner le repository backend** (si pas déjà fait) :
+   ```bash
+   git clone https://github.com/MohamedFawziAbdellaoui/recruitment-app-backend.git
+   cd recruitment-app-backend
+   ```
+
+2. **Lancer le backend avec Docker** :
+   ```bash
+   docker-compose up -d
+   ```
+   
+   Le backend sera disponible sur : `http://localhost:3000`
+   MongoDB sera lancé automatiquement sur le port `27017`
+
+3. **Vérifier que le backend fonctionne** :
+   - Ouvrez `http://localhost:3000` dans votre navigateur
+   - Vous devriez voir une réponse du serveur
+
+### Configuration
+
+L'URL de base de l'API est configurée dans `lib/services/api_service.dart` :
+```dart
+static const String baseUrl = 'http://localhost:3000';
+```
+
+Pour changer l'URL (par exemple pour un appareil mobile), modifiez cette constante.
+
+### Authentification
+
+L'application utilise JWT pour l'authentification. Les tokens sont automatiquement :
+- Sauvegardés après login/signup
+- Inclus dans les headers de toutes les requêtes authentifiées
+- Supprimés lors de la déconnexion
 
 ## 🎨 Personnalisation
 
@@ -115,12 +146,17 @@ Le thème de l'application peut être personnalisé dans `lib/utils/app_theme.da
 
 Pour tester l'application :
 
-1. **Compte Candidat** : Utilisez un email qui ne contient pas "@company.com"
-2. **Compte Entreprise** : Utilisez un email contenant "@company.com"
+1. **Assurez-vous que le backend est lancé** (voir section "Intégration Backend")
+2. **Créez un compte Candidat** :
+   - Sélectionnez "Candidat" lors de l'inscription
+   - Le backend utilisera le type "employee"
+3. **Créez un compte Entreprise** :
+   - Sélectionnez "Entreprise" lors de l'inscription
+   - Le backend utilisera le type "entreprise"
 
 ## 🔮 Améliorations futures
 
-- [ ] Intégration complète avec un backend REST API
+- [x] Intégration complète avec un backend REST API
 - [ ] Notifications push
 - [ ] Recherche avancée d'offres
 - [ ] Chat entre candidats et entreprises
@@ -145,4 +181,5 @@ Pour contribuer au projet :
 ---
 
 Développé avec ❤️ en Flutter
+
 

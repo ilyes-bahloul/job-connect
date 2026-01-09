@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/user_model.dart';
+import '../services/auth_api_service.dart';
+import '../services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _currentUser;
@@ -40,19 +42,21 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate API call - replace with actual backend call
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Mock login - in real app, this would be an API call
-      // For demo: email ending with @company.com is a company, otherwise employee
-      final role = email.contains('@company.com') ? 'company' : 'employee';
+      final result = await AuthApiService.login(email, password);
       
-      _currentUser = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        name: email.split('@')[0],
-        role: role,
-      );
+      // Get user info from result
+      final userData = result['user'];
+      if (userData != null) {
+        _currentUser = User.fromJson(userData as Map<String, dynamic>);
+      } else {
+        // If no user data in response, fetch it using userId
+        final userId = result['userId']?.toString();
+        if (userId != null) {
+          _currentUser = await AuthApiService.getUserById(userId);
+        } else {
+          throw Exception('User data not found in login response');
+        }
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('current_user', json.encode(_currentUser!.toJson()));
@@ -62,6 +66,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      debugPrint('Login error: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -73,15 +78,25 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      _currentUser = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      // Backend expects 'entreprise' or 'employee'
+      final type = role == 'company' ? 'entreprise' : 'employee';
+      
+      final result = await AuthApiService.signup(
         email: email,
+        password: password,
         name: name,
-        role: role,
+        type: type,
       );
+
+      // Get user info - might need to fetch user by ID
+      final userId = result['userId'] ?? result['user']?['_id'] ?? result['user']?['id'];
+      if (userId != null) {
+        _currentUser = await AuthApiService.getUserById(userId.toString());
+      } else if (result['user'] != null) {
+        _currentUser = User.fromJson(result['user']);
+      } else {
+        throw Exception('User data not found in response');
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('current_user', json.encode(_currentUser!.toJson()));
@@ -91,6 +106,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      debugPrint('Register error: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -100,6 +116,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('current_user');
+    await ApiService.clearToken();
     _currentUser = null;
     _isAuthenticated = false;
     notifyListeners();
@@ -112,4 +129,5 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
 
